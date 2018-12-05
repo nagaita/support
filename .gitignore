@@ -25,6 +25,7 @@ hs_err_pid*
 .gradle
 out
 build
+!gradle/wrapper/gradle-wrapper.jar
 
 node_modules
 .DS_Store
