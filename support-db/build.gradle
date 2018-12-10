@@ -12,4 +12,8 @@ flyway {
     url = 'jdbc:postgresql://localhost:5432/'
     user = 'support'
     password = 'mysecretpassword'
+    locations = [
+            'filesystem:support-db/src/main/resources/db/migration/ddl',
+            'filesystem:support-db/src/main/resources/db/migration/data'
+    ]
 }
