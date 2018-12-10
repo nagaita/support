@@ -10,6 +10,7 @@ plugins {
 
 flyway {
     url = 'jdbc:postgresql://localhost:5432/'
+    schemas=['support']
     user = 'support'
     password = 'mysecretpassword'
     locations = [
