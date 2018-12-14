@@ -1,4 +1,4 @@
-package io.nagaita.support.web.repository
+package io.nagaita.support.web.mytr.repository
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate

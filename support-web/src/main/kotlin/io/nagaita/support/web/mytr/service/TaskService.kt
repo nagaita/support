@@ -1,6 +1,6 @@
-package io.nagaita.support.web.domain.service
+package io.nagaita.support.web.mytr.service
 
-import io.nagaita.support.web.repository.TrBoardRepository
+import io.nagaita.support.web.mytr.repository.TrBoardRepository
 import org.springframework.stereotype.Service
 
 class Task(val id: Long, val title: String)

@@ -1,7 +1,7 @@
-package io.nagaita.support.web.domain.service
+package io.nagaita.support.web.mytr.service
 
-import io.nagaita.support.web.repository.TrBoardRepository
-import io.nagaita.support.web.repository.TrBoardVo
+import io.nagaita.support.web.mytr.repository.TrBoardRepository
+import io.nagaita.support.web.mytr.repository.TrBoardVo
 import org.springframework.stereotype.Service
 
 @Service

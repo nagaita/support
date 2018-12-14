@@ -1,7 +1,7 @@
-package io.nagaita.support.web.controller
+package io.nagaita.support.web.mytr.controller
 
-import io.nagaita.support.web.domain.service.TaskService
-import io.nagaita.support.web.domain.service.TrBoardService
+import io.nagaita.support.web.mytr.service.TaskService
+import io.nagaita.support.web.mytr.service.TrBoardService
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
