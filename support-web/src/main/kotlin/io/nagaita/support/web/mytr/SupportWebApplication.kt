@@ -1,4 +1,4 @@
-package io.nagaita.support.web
+package io.nagaita.support.web.mytr
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
