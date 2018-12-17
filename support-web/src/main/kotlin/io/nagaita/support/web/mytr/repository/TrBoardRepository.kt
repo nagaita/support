@@ -61,18 +61,17 @@ class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
         }.groupBy {
             it.boardId
         }.map { groupByBoard ->
-            val lists = groupByBoard.value.asSequence().groupBy { groupByList ->
-                groupByList.listId
-            }.map {
-                val rows = it.value
-                val cards = rows.map { row ->
+            groupByBoard.value.asSequence().groupBy {
+                it.listId
+            }.map { groupByList ->
+                groupByList.value.map { row ->
                     TrCardVo(row.cardId, row.cardTitle, row.cardSortOrder)
+                }.let { cards ->
+                    TrListVo(groupByList.value[0].listId, groupByList.value[0].listTitle, groupByList.value[0].listSortOrder, cards)
                 }
-                TrListVo(rows[0].listId, rows[0].listTitle, rows[0].listSortOrder, cards)
-            }.toList()
-
-            val headRow = groupByBoard.value[0]
-            TrBoardVo(headRow.boardId, headRow.boardTitle, headRow.boardSortOrder, lists)
+            }.let { lists ->
+                TrBoardVo(groupByBoard.value[0].boardId, groupByBoard.value[0].boardTitle, groupByBoard.value[0].boardSortOrder, lists)
+            }
         }.firstOrNull()
     }
 
