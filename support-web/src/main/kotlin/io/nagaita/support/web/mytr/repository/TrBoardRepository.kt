@@ -3,7 +3,6 @@ package io.nagaita.support.web.mytr.repository
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
-import java.sql.ResultSet
 
 @Repository
 class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
@@ -25,73 +24,71 @@ class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
     }
 
     // TODO order by
-    // TODO want to select at only once
-    // TODO not use copy for performance
-    fun select(id: Long): TrBoardVo? {
-        val board = selectBoard(id) ?: return null
-        val lists = selectList(board.id)
-        val cards = selectCard(lists.map { it.id })
-        val listWithCards = lists.map { list ->
-            list.copy(trCards = cards.filter { card -> list.id == card.listId })
-        }
-        return board.copy(trLists = listWithCards)
-    }
+    fun select(boardId: Long): TrBoardVo? {
+        val sql = """
+            |SELECT
+            |  b.id         AS "board.id",
+            |  b.title      AS "board.title",
+            |  b.sort_order AS "board.sort_order",
+            |  l.id         AS "list.id",
+            |  l.title      AS "list.title",
+            |  l.sort_order AS "list.sort_order",
+            |  c.id         AS "card.id",
+            |  c.title      AS "card.title",
+            |  c.sort_order AS "card.sort_order"
+            |FROM board b
+            |  INNER JOIN list l ON b.id = l.board_id
+            |  INNER JOIN card c ON l.id = c.list_id
+            |WHERE b.id = :boardId;
+        """.trimMargin()
 
-    private fun selectBoard(id: Long): TrBoardVo? {
-        val sql = buildString {
-            append("SELECT b.id, b.title, b.sort_order FROM board b WHERE b.id = :id;")
-        }
-        val paramMap = MapSqlParameterSource().apply {
-            addValue("id", id)
-        }
-        return jdbcTemplate.queryForObject(sql, paramMap) { resultSet: ResultSet, _ ->
-            TrBoardVo(
-                    resultSet.getLong("id"),
-                    resultSet.getString("title"),
-                    resultSet.getInt("sort_order"),
-                    emptyList()
-            )
-        }
-    }
-
-    // TODO add index for foreign keys
-    private fun selectList(boardId: Long): List<TrListVo> {
-        val sql = buildString {
-            appendln("SELECT l.id, l.board_id, l.title, l.sort_order FROM list l WHERE l.board_id = :boardId")
-        }
         val paramMap = MapSqlParameterSource().apply {
             addValue("boardId", boardId)
         }
-        return jdbcTemplate.queryForList(sql, paramMap).map {
-            TrListVo(
-                    it["id"] as Long,
-                    it["board_id"] as Long,
-                    it["title"] as String,
-                    it["sort_order"] as Int,
-                    emptyList()
-            )
-        }
-    }
 
-    // TODO add index for foreign keys
-    private fun selectCard(listIds: List<Long>): List<TrCardVo> {
-        val sql = buildString {
-            appendln("SELECT c.id, c.list_id, c.title, c.sort_order FROM card c WHERE c.list_id in (:listIds);")
-        }
-        val paramMap = MapSqlParameterSource().apply {
-            addValue("listIds", listIds)
-        }
-        return jdbcTemplate.queryForList(sql, paramMap).map {
-            TrCardVo(
-                    it["id"] as Long,
-                    it["list_id"] as Long,
-                    it["title"] as String,
-                    it["sort_order"] as Int
+        return jdbcTemplate.queryForList(sql, paramMap).asSequence().map {
+            JoinedRow(
+                    it["board.id"] as Long,
+                    it["board.title"] as String,
+                    it["board.sort_order"] as Int,
+                    it["list.id"] as Long,
+                    it["list.title"] as String,
+                    it["list.sort_order"] as Int,
+                    it["card.id"] as Long,
+                    it["card.title"] as String,
+                    it["card.sort_order"] as Int
             )
-        }
+        }.groupBy {
+            it.boardId
+        }.map { groupByBoard ->
+            val lists = groupByBoard.value.asSequence().groupBy { groupByList ->
+                groupByList.listId
+            }.map {
+                val rows = it.value
+                val cards = rows.map { row ->
+                    TrCardVo(row.cardId, row.cardTitle, row.cardSortOrder)
+                }
+                TrListVo(rows[0].listId, rows[0].listTitle, rows[0].listSortOrder, cards)
+            }.toList()
+
+            val headRow = groupByBoard.value[0]
+            TrBoardVo(headRow.boardId, headRow.boardTitle, headRow.boardSortOrder, lists)
+        }.firstOrNull()
     }
 
 }
+
+private data class JoinedRow(
+        val boardId: Long,
+        val boardTitle: String,
+        val boardSortOrder: Int,
+        val listId: Long,
+        val listTitle: String,
+        val listSortOrder: Int,
+        val cardId: Long,
+        val cardTitle: String,
+        val cardSortOrder: Int
+)
 
 data class TrBoardVo(
         val id: Long,
@@ -102,14 +99,12 @@ data class TrBoardVo(
 
 data class TrListVo(
         val id: Long,
-        val boardId: Long, // TODO remove after modifying the way to select data from DB
         val title: String,
         val sortOrder: Int,
         val trCards: List<TrCardVo>)
 
 data class TrCardVo(
         val id: Long,
-        val listId: Long, // TODO remove after modifying the way to select data from DB
         val title: String,
         val sortOrder: Int
 )
