@@ -9,15 +9,19 @@ class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
 
     // TODO order by
     fun select(): List<TrBoardVo> {
-        val sql = buildString {
-            appendln("SELECT b.id, b.title, b.sort_order FROM board b;")
-        }
+        val sql = """
+            |SELECT
+            |  b.id         AS "board.id",
+            |  b.title      AS "board.title",
+            |  b.sort_order AS "board.sort_order"
+            |FROM board b;
+        """.trimMargin()
         val paramMap = MapSqlParameterSource()
         return jdbcTemplate.queryForList(sql, paramMap).map {
             TrBoardVo(
-                    it["id"] as Long,
-                    it["title"] as String,
-                    it["sort_order"] as Int,
+                    it["board.id"] as Long,
+                    it["board.title"] as String,
+                    it["board.sort_order"] as Int,
                     emptyList()
             )
         }
@@ -41,11 +45,9 @@ class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
             |  INNER JOIN card c ON l.id = c.list_id
             |WHERE b.id = :boardId;
         """.trimMargin()
-
         val paramMap = MapSqlParameterSource().apply {
             addValue("boardId", boardId)
         }
-
         return jdbcTemplate.queryForList(sql, paramMap).asSequence().map {
             JoinedRow(
                     it["board.id"] as Long,
