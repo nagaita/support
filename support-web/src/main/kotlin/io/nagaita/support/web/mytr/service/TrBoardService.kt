@@ -14,4 +14,8 @@ class TrBoardService(val trBoardRepository: TrBoardRepository) {
     fun select(id: Long): TrBoardVo? {
         return trBoardRepository.select(id)
     }
+
+    fun create(title: String, sortOrder: Int) {
+        trBoardRepository.insert(title, sortOrder)
+    }
 }
