@@ -77,6 +77,15 @@ class TrBoardRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
         }.firstOrNull()
     }
 
+    fun insert(title: String, sortOrder: Int) {
+        val sql = "INSERT INTO board (title, sort_order) VALUES (:title, :sortOrder);"
+        val paramMap = MapSqlParameterSource().apply {
+            addValue("title", title)
+            addValue("sortOrder", sortOrder)
+        }
+        jdbcTemplate.update(sql, paramMap)
+    }
+
 }
 
 private data class JoinedRow(
